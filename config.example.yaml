@@ -1,15 +1,15 @@
 project:
-  name: NPC_DECT_Ki67_reanalysis
-  version: "2026-10-21"
-  random_seed: 20261021
+  name: NPC_DECT_Ki67
+  version: ""
+  random_seed: 42
   temporal_cutoff: "2023-08-01"
 paths:
   project_root: "."
-  quantitative: "data/quantitative_measurements.xlsx"
-  clinical: "data/clinical_data.xlsx"
-  three_d_matrix: "data/three_d_matrix.csv"
-  three_slice_matrix: "data/three_slice_matrix.csv"
-  radiomics_source: "data/radiomics_source.example.csv"
+  quantitative: ""
+  clinical: ""
+  three_d_matrix: ""
+  three_slice_matrix: ""
+  radiomics_source: ""
   path_mappings: {}
 input_schema:
   quantitative_sheets:
