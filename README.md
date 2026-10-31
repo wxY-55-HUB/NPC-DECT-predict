@@ -1,44 +1,35 @@
-from __future__ import annotations
+# NPC dual-energy CT and Ki-67 reanalysis code
 
-import argparse
-from pathlib import Path
+This repository contains the analysis code and a portable configuration template for a retrospective nasopharyngeal carcinoma study. Patient-level data, prediction records, fitted-model artifacts, logs and figure outputs are excluded.
 
-from .pipeline import run_pipeline, validate_outputs
+## Contents
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="NPC DECT Ki-67 reviewer reanalysis")
-    sub = parser.add_subparsers(dest="command", required=True)
-    run = sub.add_parser("run", help="run the complete frozen pipeline")
-    run.add_argument("--config", required=True, type=Path)
-    run.add_argument("--quick", action="store_true", help="small deterministic smoke run")
-    val = sub.add_parser("validate", help="run acceptance checks on frozen outputs")
-    val.add_argument("--config", required=True, type=Path)
-    fusion = sub.add_parser("fusion", help="run the independent quantitative-radiomics fusion analysis")
-    fusion.add_argument("--quick", action="store_true", help="small deterministic smoke run")
-    fusion.add_argument("--models", default="elasticnet,randomforest", help="elasticnet,randomforest,xgboost")
-    fusion.add_argument("--periods", default=None, help="comma-separated phase/energy combinations")
-    fusion.add_argument("--fusion-methods", default=None, help="feature_level,late_stack,soft_vote")
-    fusion.add_argument("--output-dir", default=None, help="output directory relative to the project root")
-    return parser
+- `reviewer_reanalysis/`: data processing, nested model development, temporal evaluation, statistics, reporting and fusion implementation.
+- `config.example.yaml`: portable configuration with relative paths and frozen analysis settings.
+- `requirements.txt`: Python dependencies.
+- `data/radiomics_source.example.csv`: header-only placeholder.
 
-def main() -> None:
-    args = build_parser().parse_args()
-    if args.command == "run":
-        run_pipeline(args.config, quick=args.quick)
-    elif args.command == "validate":
-        validate_outputs(args.config)
-    else:
-        from .multimodel_fusion import Config as FusionConfig, run_fusion
+Chinese and English Python comments and docstrings were removed from the upload copy. Machine-specific image-root paths were replaced with configurable path mappings. No trained model artifacts are included.
 
-        cfg = FusionConfig(models=tuple(x.strip().lower() for x in args.models.split(",") if x.strip()))
-        if args.periods:
-            cfg.periods = tuple(x.strip() for x in args.periods.split(",") if x.strip())
-        if args.fusion_methods:
-            cfg.fusion_methods = tuple(x.strip() for x in args.fusion_methods.split(",") if x.strip())
-        if args.quick:
-            cfg.n_repeats, cfg.outer_folds, cfg.inner_folds = 1, 3, 2
-            if not cfg.periods:
-                cfg.periods = ("A100+A150", "V100+V150", "A100+V100", "A100+A150+V100+V150")
-        if args.output_dir:
-            cfg.output_dir = args.output_dir
-        run_fusion(cfg)
+## Data required
+
+Patient-level imaging, clinical and feature-matrix data are not distributed because they contain identifying information and are subject to institutional restrictions. Before running, place approved local input files in a secure location and update the paths in `config.example.yaml`. Required inputs are a quantitative-measurement workbook (arterial and venous phase sheets) or prepared quantitative CSV, a clinical workbook, a three-dimensional radiomics matrix with `PatientID`, `Ki67` and `Radiomics__*` columns, and a three-slice matrix with `PatientID`, `Ki67` and `ThreeSlice__*` columns. Workbook sheet names, clinical column names and raw sex labels are configurable under `input_schema`; map these settings to the labels in your local files. The analysis converts the clinical workbook fields to standardized internal names. DICOM-date auditing remains configurable through local image-index paths. ROI perturbation code was omitted because it is not part of the reported analysis.
+
+Do not commit source images, masks, clinical workbooks, patient-level feature matrices, patient-level predictions, logs, or derived outputs. Review staged files before publishing.
+
+## Environment and execution
+
+Use Python 3.10 or newer. From the repository root, install dependencies and run:
+
+```bash
+python -m venv .venv
+Activate the environment, then install dependencies:
+python -m pip install -r requirements.txt
+python -m reviewer_reanalysis run --config config.example.yaml
+```
+
+The analysis uses the 1 August 2023 chronological cutoff. Preprocessing, feature selection, tuning and threshold selection are fit using development data; the later cohort is treated as internal temporal validation. Output folders are ignored by Git.
+
+## License
+
+No reuse license has been assigned. Select and add a license before release if reuse permissions are intended.
