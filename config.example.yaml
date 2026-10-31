@@ -1,0 +1,81 @@
+project:
+  name: NPC_DECT_Ki67_reanalysis
+  version: "2026-10-21"
+  random_seed: 20261021
+  temporal_cutoff: "2023-08-01"
+paths:
+  project_root: "."
+  quantitative: "data/quantitative_measurements.xlsx"
+  clinical: "data/clinical_data.xlsx"
+  three_d_matrix: "data/three_d_matrix.csv"
+  three_slice_matrix: "data/three_slice_matrix.csv"
+  radiomics_source: "data/radiomics_source.example.csv"
+  path_mappings: {}
+input_schema:
+  quantitative_sheets:
+    arterial: Arterial
+    venous: Venous
+  clinical_sheet: Sheet2
+  clinical_columns:
+    id: ID
+    name: NAME
+    age: AGE
+    sex: SEX
+    weight: WEIGHT
+    height: HEIGHT
+    ki67: KI67
+    imaging_stage: IMAGING_STAGE
+    clinical_stage: CLINICAL_STAGE
+  clinical_sex_values:
+    male: M
+    female: F
+outcomes:
+  primary_cutoff_percent: 50
+  primary_rule: ge
+  sensitivity_rules:
+    - {name: Ki67_gt50, cutoff_percent: 50, rule: gt}
+    - {name: Ki67_ge40, cutoff_percent: 40, rule: ge}
+    - {name: Ki67_ge60, cutoff_percent: 60, rule: ge}
+  continuous: true
+cohorts:
+  fair_comparison_requires_quantitative_triplicate: true
+  imaging_maximum_available: true
+  quantitative_single_measurement_sensitivity: true
+preprocessing:
+  missing_rate_max: 0.20
+  correlation_abs_max: 0.90
+  max_correlation_candidates: 300
+  log1p_name_tokens: [Volume, VoxelCount, Count, ConnectedComponents]
+  add_habitat_presence_indicators: false
+  imputer: median
+  scaler: robust
+  class_weight: balanced
+  use_smote: false
+validation:
+  outer_folds: 5
+  outer_repeats: 5
+  inner_folds: 4
+  bootstrap_iterations: 2000
+  threshold: youden_from_development_oof
+  temporal_label: internal_temporal_validation
+models:
+  enabled_model_types: [quantitative, three_slice, three_d]
+  primary_algorithm: elastic_net_logistic
+  continuous_algorithm: elastic_net_regression
+  strategies: [elasticnet_direct, topk]
+  top_k_grid: [5, 10, 20, 40]
+  C_grid: [0.03, 0.1, 0.3, 1.0]
+  l1_ratio_grid: [0.25, 0.5, 0.75, 1.0]
+  continuous_alpha_grid: [0.001, 0.01, 0.1, 1.0]
+  supplemental_algorithms: [random_forest, xgboost]
+  run_supplemental_trees: true
+  fusion_matched_algorithms: [elasticnet, randomforest]
+  fusion_top_k_quantitative: 8
+  fusion_top_k_radiomics: 12
+  run_ablations: true
+  ablation_outer_repeats: 1
+runtime:
+  n_jobs: -1
+  save_intermediate: true
+  deterministic: true
+  quick_mode: false
