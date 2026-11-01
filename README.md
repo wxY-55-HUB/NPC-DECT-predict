@@ -1,6 +1,6 @@
 # NPC dual-energy CT and Ki-67  code
 
-This repository contains the analysis code and a portable configuration template for a retrospective nasopharyngeal carcinoma study. Patient-level data, prediction records, fitted-model artifacts, logs and figure outputs are excluded.
+This repository contains the analysis code and a portable configuration template for a retrospective nasopharyngeal carcinoma study. Patient-level data, prediction records, fitted-model artifacts.
 
 ## Contents
 
